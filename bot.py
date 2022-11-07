@@ -3,8 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 from telebot import types
 import telebot 
-
-
 import time
 import os
 from dotenv import load_dotenv
@@ -14,12 +12,11 @@ bot = telebot.TeleBot(os.getenv('TOKEN'))
 arr = []
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    if message.text == '/start' or message.text == 'Вернуться в главное меню':
+    if message.text == '/start' or message.text == 'Вернуться в главное меню' or message.text == 'Парсить':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        parser = types.KeyboardButton('Парсить')
         sub = types.KeyboardButton('Подписки')
-        markup.add(parser, sub)
-        bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей'+'\n'+ 'Нажмите "Парсить" для запуска парсера',reply_markup=markup)
+        markup.add(sub)
+        bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей',reply_markup=markup)
     if message.text == 'Выбрать категории':
         global arr
         arr = []
@@ -29,8 +26,9 @@ def get_text_messages(message):
         cat3 = types.KeyboardButton('Спорт')
         cat4 = types.KeyboardButton('Общество')
         cat5 = types.KeyboardButton('Финансы')
-        back = types.KeyboardButton('Вернуться в меню подписок')
-        markup.add(cat1, cat2, cat3, cat4, cat5, back)
+        cat6 = types.KeyboardButton('Технологии и медиа')
+        back = types.KeyboardButton('Парсить')
+        markup.add(cat1, cat2, cat3, cat4, cat5, cat6, back)
         bot.send_message(message.chat.id, 'Выберите категории или нажмите вернитесь в меню подписок для завершения',reply_markup=markup)
     
     if message.text == 'Активные категории':
@@ -48,10 +46,10 @@ def get_text_messages(message):
         back = types.KeyboardButton('Вернуться в главное меню')
         markup.add(sub, reload, back)
         bot.send_message(message.chat.id, 'Выберите пункт',reply_markup=markup)
-    if message.text == 'Экономика' or message.text == 'Политика' or message.text == 'Спорт' or message.text == 'Общество' or message.text == 'Финансы':
+    if message.text == 'Экономика' or message.text == 'Политика' or message.text == 'Спорт' or message.text == 'Общество' or message.text == 'Финансы' or message.text == 'Технологии и медиа':
         if message.text not in arr:
             arr.append(message.text)
-        bot.send_message(message.chat.id, 'Выберите ещё или вернитесь в меню подписок')
+        bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
     
     if message.text == 'Парсить':
         if len(arr) == 0:
