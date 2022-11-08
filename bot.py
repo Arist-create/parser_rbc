@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 from telebot import types
 import telebot 
-import time
 import asyncio
 import os
 from dotenv import load_dotenv
@@ -90,6 +89,5 @@ async def get_text_messages(message):
 
                     await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
 
-            await asyncio.sleep(30)    
-asyncio.run(bot.polling(none_stop=True))
-
+            await asyncio.sleep(60)    
+asyncio.run(bot.infinity_polling())
