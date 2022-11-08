@@ -21,4 +21,5 @@ RUN python3 -m pip install requests
 RUN python3 -m pip install soupsieve          
 RUN python3 -m pip install urllib3            
 RUN python3 -m pip install yarl   
+RUN python3 -m pip install asyncio
 CMD [ "python3", "bot.py" ]

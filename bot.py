@@ -4,22 +4,26 @@ from bs4 import BeautifulSoup
 from telebot import types
 import telebot 
 import time
+import asyncio
 import os
 from dotenv import load_dotenv
 load_dotenv()
+from telebot.async_telebot import AsyncTeleBot
 
-bot = telebot.TeleBot(os.getenv('TOKEN'))
 arr = []
+
+bot = AsyncTeleBot(os.getenv('TOKEN'))
+
 @bot.message_handler(content_types=['text'])
-def get_text_messages(message):
+async def get_text_messages(message):
     if message.text == '/start' or message.text == 'Вернуться в главное меню' or message.text == 'Парсить':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         sub = types.KeyboardButton('Подписки')
         markup.add(sub)
-        bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей',reply_markup=markup)
+        await bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей',reply_markup=markup)
     if message.text == 'Выбрать категории':
         global arr
-        arr = []
+        arr=[]
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         cat1 = types.KeyboardButton('Политика')
         cat2 = types.KeyboardButton('Экономика')
@@ -29,33 +33,35 @@ def get_text_messages(message):
         cat6 = types.KeyboardButton('Технологии и медиа')
         back = types.KeyboardButton('Парсить')
         markup.add(cat1, cat2, cat3, cat4, cat5, cat6, back)
-        bot.send_message(message.chat.id, 'Выберите категории или нажмите вернитесь в меню подписок для завершения',reply_markup=markup)
+        await bot.send_message(message.chat.id, 'Выберите категории или нажмите вернитесь в меню подписок для завершения',reply_markup=markup)
     
     if message.text == 'Активные категории':
         i = 0
         if len(arr) == 0:
-            bot.send_message(message.chat.id, 'Нет')
+            await bot.send_message(message.chat.id, 'Нет')
         else:
             while i < len(arr):
-                bot.send_message(message.chat.id, arr[i])
+                await bot.send_message(message.chat.id, arr[i])
                 i += 1
     if message.text == 'Подписки' or message.text == 'Вернуться в меню подписок':
+        
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         sub = types.KeyboardButton('Активные категории')
         reload = types.KeyboardButton('Выбрать категории')
         back = types.KeyboardButton('Вернуться в главное меню')
         markup.add(sub, reload, back)
-        bot.send_message(message.chat.id, 'Выберите пункт',reply_markup=markup)
+        await bot.send_message(message.chat.id, 'Выберите пункт',reply_markup=markup)
+       
     if message.text == 'Экономика' or message.text == 'Политика' or message.text == 'Спорт' or message.text == 'Общество' or message.text == 'Финансы' or message.text == 'Технологии и медиа':
         if message.text not in arr:
             arr.append(message.text)
-        bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
+        await bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
     
     if message.text == 'Парсить':
         if len(arr) == 0:
-            bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
+            await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
         else:
-            bot.send_message(message.chat.id, 'Парсим!')
+            await bot.send_message(message.chat.id, 'Парсим!')
         check = 0
        
         while len(arr) > 0:
@@ -80,9 +86,8 @@ def get_text_messages(message):
                     button = types.InlineKeyboardButton("Перейти к новости", url=href)
                     markup.add(button)
 
-                    bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
+                    await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
 
-            time.sleep(60)
-           
-bot.polling(none_stop=True)
+            await asyncio.sleep(30)    
+asyncio.run(bot.polling(none_stop=True))
 
