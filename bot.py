@@ -62,7 +62,8 @@ async def get_text_messages(message):
             await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
         else:
             await bot.send_message(message.chat.id, 'Парсим!')
-        check = 0
+        check_txt = 0
+        check_href = 0
        
         while len(arr) > 0:
             r = requests.get('https://www.rbc.ru/short_news')
@@ -80,8 +81,9 @@ async def get_text_messages(message):
                 print('Ошибка')
                 
             if (tema.text.strip()[:-1] in arr) == True:
-                if txt != check:
-                    check = txt
+                if txt != check_txt and href != check_href:
+                    check_txt = txt
+                    check_href = href
                     markup = types.InlineKeyboardMarkup()
                     button = types.InlineKeyboardButton("Перейти к новости", url=href)
                     markup.add(button)
