@@ -5,6 +5,7 @@ from telebot import types
 import telebot 
 import asyncio
 import os
+import random
 from dotenv import load_dotenv
 load_dotenv()
 from telebot.async_telebot import AsyncTeleBot
@@ -23,6 +24,8 @@ async def get_text_messages(message):
     if message.text == 'Выбрать категории':
         global arr
         arr=[]
+        global key
+        key = random.randrange(1, 10000)
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         cat1 = types.KeyboardButton('Политика')
         cat2 = types.KeyboardButton('Экономика')
@@ -63,8 +66,9 @@ async def get_text_messages(message):
             await bot.send_message(message.chat.id, 'Парсим!')
         check_txt = 0
         check_href = 0
-       
-        while len(arr) > 0:
+        
+        key_parse = key
+        while len(arr) > 0 and key_parse == key:
             r = requests.get('https://www.rbc.ru/short_news')
             soup = BeautifulSoup(r.content, 'html.parser')
             try:
@@ -90,4 +94,8 @@ async def get_text_messages(message):
                     await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
 
             await asyncio.sleep(60)    
-asyncio.run(bot.infinity_polling())
+while True:
+    try:
+        asyncio.run(bot.polling(non_stop=True))
+    except requests.exceptions.ConnectionError:
+        pass
