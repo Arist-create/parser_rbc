@@ -64,38 +64,32 @@ async def get_text_messages(message):
             await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
         else:
             await bot.send_message(message.chat.id, 'Парсим!')
-        check_txt = 0
-        check_href = 0
+            check_txt = 0
+            check_href = 0
         
-        key_parse = key
-        while len(arr) > 0 and key_parse == key:
-            r = requests.get('https://www.rbc.ru/short_news')
-            soup = BeautifulSoup(r.content, 'html.parser')
-            try:
-                img = soup.find('div', class_='item__wrap l-col-center').find('img').get('src')
-            except:
-                img = 'https://koronapay.com/transfers/europe/static/rbk_05b1697cef-1e51cefc9b0d1f98b617abdaf35b7417.jpg'
+            key_parse = key
+            while key_parse == key:
+                r = requests.get('https://www.rbc.ru/short_news')
+                soup = BeautifulSoup(r.content, 'html.parser')
+                try:
+                    img = soup.find('div', class_='item__wrap l-col-center').find('img').get('src')
+                except:
+                    img = 'https://koronapay.com/transfers/europe/static/rbk_05b1697cef-1e51cefc9b0d1f98b617abdaf35b7417.jpg'
                 
-            txt = soup.find('div', class_='item__wrap l-col-center').find('span', class_='item__title rm-cm-item-text')
-            href = soup.find('a', class_='item__link').get('href')
-            try:
+                txt = soup.find('div', class_='item__wrap l-col-center').find('span', class_='item__title rm-cm-item-text')
+                href = soup.find('a', class_='item__link').get('href')
                 tema = soup.find('div', class_='item__bottom').find('a', class_='item__category')
-            except:
-                print('Ошибка')
-                
-            if (tema.text.strip()[:-1] in arr) == True:
-                if txt != check_txt and href != check_href:
-                    check_txt = txt
-                    check_href = href
-                    markup = types.InlineKeyboardMarkup()
-                    button = types.InlineKeyboardButton("Перейти к новости", url=href)
-                    markup.add(button)
+                if tema != None:
+                    if (tema.text.strip()[:-1] in arr) == True and (txt != check_txt) and (href != check_href):
+                        check_txt = txt
+                        check_href = href
+                        markup = types.InlineKeyboardMarkup()
+                        button = types.InlineKeyboardButton("Перейти к новости", url=href)
+                        markup.add(button)
 
-                    await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
+                        await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
 
-            await asyncio.sleep(60)    
-while True:
-    try:
-        asyncio.run(bot.polling(non_stop=True))
-    except requests.exceptions.ConnectionError:
-        pass
+                await asyncio.sleep(60)    
+
+asyncio.run(bot.polling(non_stop=True))
+  
