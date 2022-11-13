@@ -9,23 +9,51 @@ import random
 from dotenv import load_dotenv
 load_dotenv()
 from telebot.async_telebot import AsyncTeleBot
+import sqlite3
 
-arr = []
+db = sqlite3.connect('Users.db')
+sql = db.cursor()
+sql.execute('''CREATE TABLE IF NOT EXISTS categories(
+    chat_id INT,
+    categories STR
+)''')
+sql.execute('''CREATE TABLE IF NOT EXISTS keys(
+    chat_id INT,
+    keys INT
+)''')
+sql.execute('''CREATE TABLE IF NOT EXISTS checks(
+    chat_id INT,
+    checks STR
+)''')
+db.commit()
+db.close()
+
 
 bot = AsyncTeleBot(os.getenv('TOKEN'))
-
 @bot.message_handler(content_types=['text'])
 async def get_text_messages(message):
+
     if message.text == '/start' or message.text == 'Вернуться в главное меню' or message.text == 'Парсить':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         sub = types.KeyboardButton('Подписки')
         markup.add(sub)
         await bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей',reply_markup=markup)
     if message.text == 'Выбрать категории':
-        global arr
-        arr=[]
-        global key
-        key = random.randrange(1, 10000)
+        db = sqlite3.connect('Users.db')
+        sql = db.cursor()
+        sql.execute("DELETE FROM categories WHERE chat_id = ?",(message.chat.id, ))
+        db.commit()
+        
+        key = random.randrange(1, 1000000)
+        items = sql.execute("SELECT keys FROM keys WHERE chat_id = ?", (message.chat.id, )).fetchall()
+        if len(items) != 0:
+            sql.execute("UPDATE keys SET keys = ? WHERE chat_id = ?", (key, message.chat.id))
+            db.commit()
+        else:
+            sql.execute("INSERT INTO keys VALUES (?,?)", (message.chat.id, key))
+            db.commit()
+        db.close()
+
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         cat1 = types.KeyboardButton('Политика')
         cat2 = types.KeyboardButton('Экономика')
@@ -38,13 +66,15 @@ async def get_text_messages(message):
         await bot.send_message(message.chat.id, 'Выберите категории или нажмите вернитесь в меню подписок для завершения',reply_markup=markup)
     
     if message.text == 'Активные категории':
-        i = 0
-        if len(arr) == 0:
-            await bot.send_message(message.chat.id, 'Нет')
+        db = sqlite3.connect('Users.db')
+        sql = db.cursor()
+        items = sql.execute("SELECT categories FROM categories WHERE chat_id = ?", (message.chat.id, )).fetchall()
+        if len(items) != 0:
+            for el in items:
+                await bot.send_message(message.chat.id, el[0])
         else:
-            while i < len(arr):
-                await bot.send_message(message.chat.id, arr[i])
-                i += 1
+            await bot.send_message(message.chat.id, 'Нет')
+        db.close()
     if message.text == 'Подписки' or message.text == 'Вернуться в меню подписок':
         
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -55,20 +85,55 @@ async def get_text_messages(message):
         await bot.send_message(message.chat.id, 'Выберите пункт',reply_markup=markup)
        
     if message.text == 'Экономика' or message.text == 'Политика' or message.text == 'Спорт' or message.text == 'Общество' or message.text == 'Финансы' or message.text == 'Технологии и медиа':
-        if message.text not in arr:
-            arr.append(message.text)
-        await bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
-    
+        arr = []
+        db = sqlite3.connect('Users.db')
+        sql = db.cursor()
+        items = sql.execute("SELECT categories FROM categories WHERE chat_id = ?", (message.chat.id, )).fetchall()
+        if len(items) != 0:
+            for el in items:
+                arr.append(el[0])
+            if (message.text in arr):
+                await bot.send_message(message.chat.id, 'Уже добавлено!')
+            else:
+                sql.execute("INSERT INTO categories VALUES (?,?)", (message.chat.id, message.text))
+                db.commit()
+                await bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
+        else:
+            sql.execute("INSERT INTO categories VALUES (?,?)", (message.chat.id, message.text))
+            db.commit()
+            await bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
+        db.close()
     if message.text == 'Парсить':
+        arr = []
+        db = sqlite3.connect('Users.db')
+        sql = db.cursor()
+        items = sql.execute("SELECT categories FROM categories WHERE chat_id = ?", (message.chat.id, )).fetchall()
+        for el in items:
+            arr.append(el[0])
         if len(arr) == 0:
             await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
+            db.close()
         else:
             await bot.send_message(message.chat.id, 'Парсим!')
-            check_txt = 0
-            check_href = 0
-        
+            
+            items = sql.execute("SELECT keys FROM keys WHERE chat_id = ?", (message.chat.id, )).fetchall()
+            db.close()
+            for el in items:
+                key = el[0]
             key_parse = key
-            while key_parse == key:
+            
+            check_href = 0
+
+            while 0 == 0:
+                db = sqlite3.connect('Users.db')
+                sql = db.cursor()
+                items = sql.execute("SELECT keys FROM keys WHERE chat_id = ?", (message.chat.id, )).fetchall()
+                db.close()
+
+                for el in items:
+                    key = el[0]
+                if key_parse != key:
+                    break
                 r = requests.get('https://www.rbc.ru/short_news')
                 soup = BeautifulSoup(r.content, 'html.parser')
                 try:
@@ -80,9 +145,20 @@ async def get_text_messages(message):
                 href = soup.find('a', class_='item__link').get('href')
                 tema = soup.find('div', class_='item__bottom').find('a', class_='item__category')
                 if tema != None:
-                    if (tema.text.strip()[:-1] in arr) == True and (txt != check_txt) and (href != check_href):
-                        check_txt = txt
-                        check_href = href
+                    if (tema.text.strip()[:-1] in arr) == True and (href != check_href):
+                        db = sqlite3.connect('Users.db')
+                        sql = db.cursor()
+                        items = sql.execute("SELECT checks FROM checks WHERE chat_id = ?", (message.chat.id, )).fetchall()
+                        if len(items) != 0:
+                            sql.execute("UPDATE checks SET checks = ? WHERE chat_id = ?", (href, message.chat.id))
+                            db.commit()
+                        else:
+                            sql.execute("INSERT INTO checks VALUES (?,?)", (message.chat.id, href))
+                            db.commit()
+                        items = sql.execute("SELECT checks FROM checks WHERE chat_id = ?", (message.chat.id, )).fetchall()
+                        db.close()
+                        for el in items:
+                            check_href = el[0]
                         markup = types.InlineKeyboardMarkup()
                         button = types.InlineKeyboardButton("Перейти к новости", url=href)
                         markup.add(button)
@@ -92,4 +168,3 @@ async def get_text_messages(message):
                 await asyncio.sleep(60)    
 
 asyncio.run(bot.polling(non_stop=True))
-  
