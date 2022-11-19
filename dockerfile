@@ -22,4 +22,5 @@ RUN python3 -m pip install soupsieve
 RUN python3 -m pip install urllib3            
 RUN python3 -m pip install yarl   
 RUN python3 -m pip install asyncio
+RUN python3 -m pip install mysql-connector-python
 CMD [ "python3", "bot.py" ]
