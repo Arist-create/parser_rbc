@@ -78,9 +78,9 @@ async def get_text_messages(message):
         markup.add(sub)
         await bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей',reply_markup=markup)
     if message.text == 'Выбрать категории':
-        SQL('DELETE', 'categories', message.chat.id, None)
+        SQL('DELETE', 'categories', message.chat.id, 'None')
         key = random.randrange(1, 1000000)
-        SQL('SELECT', 'random', message.chat.id, None)
+        SQL('SELECT', 'random', message.chat.id, 'None')
         if len(items) != 0:
             SQL('UPDATE', 'random', message.chat.id, key)
         else:
@@ -98,7 +98,7 @@ async def get_text_messages(message):
         await bot.send_message(message.chat.id, 'Выберите категории или нажмите вернитесь в меню подписок для завершения', reply_markup=markup)
     
     if message.text == 'Активные категории':
-        SQL('SELECT', 'categories', message.chat.id, None)
+        SQL('SELECT', 'categories', message.chat.id, 'None')
         if len(items) == 0:
             await bot.send_message(message.chat.id, 'Нет')
         else:
@@ -114,7 +114,7 @@ async def get_text_messages(message):
         await bot.send_message(message.chat.id, 'Выберите пункт',reply_markup=markup)
        
     if message.text == 'Экономика' or message.text == 'Политика' or message.text == 'Спорт' or message.text == 'Общество' or message.text == 'Финансы' or message.text == 'Технологии и медиа':
-        SQL('SELECT', 'categories', message.chat.id, None)
+        SQL('SELECT', 'categories', message.chat.id, 'None')
         if (message.text in items):
             await bot.send_message(message.chat.id, 'Уже добавлено!')
         else:
@@ -122,18 +122,18 @@ async def get_text_messages(message):
             await bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
     if message.text == 'Парсить':
         arr =[]
-        SQL('SELECT', 'categories', message.chat.id, None)   
+        SQL('SELECT', 'categories', message.chat.id, 'None')   
         arr = items
         if len(items) != 0:
             await bot.send_message(message.chat.id, 'Парсим!')
-            SQL('SELECT', 'random', message.chat.id, None)
+            SQL('SELECT', 'random', message.chat.id, 'None')
             for el in items:
                 key = el
             key_parse = key
             check_href = 0
             
             while 0 == 0:
-                SQL('SELECT', 'random', message.chat.id, None)
+                SQL('SELECT', 'random', message.chat.id, 'None')
                 if len(items) != 0:
                     for el in items:
                         key = el
@@ -152,12 +152,12 @@ async def get_text_messages(message):
                     if tema != None:
                         if (tema.text.strip()[:-1] in arr) == True and (href != check_href):
                             
-                            SQL('SELECT', 'checks', message.chat.id, None)
+                            SQL('SELECT', 'checks', message.chat.id, 'None')
                             if len(items) != 0:
                                 SQL('UPDATE', 'checks', message.chat.id, href)
                             else:
                                 SQL('INSERT', 'checks', message.chat.id, href)
-                            SQL('SELECT', 'checks', message.chat.id, None)
+                            SQL('SELECT', 'checks', message.chat.id, 'None')
                             for el in items:
                                 check_href = el
                             markup = types.InlineKeyboardMarkup()
