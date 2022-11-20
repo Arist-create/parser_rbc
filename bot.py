@@ -21,15 +21,15 @@ def SQL(func, what, chat_id, key):
     )
     cursor = db.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS categories(
-        chat_id INT,
+        chat_id BIGINT,
         categories VARCHAR(100)
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS random(
-        chat_id INT,
-        random INT
+        chat_id BIGINT,
+        random BIGINT
     )''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS checks(
-        chat_id INT,
+        chat_id BIGINT,
         checks VARCHAR(100)
     )''')
     db.commit()
@@ -76,11 +76,12 @@ async def get_text_messages(message):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         sub = types.KeyboardButton('Подписки')
         markup.add(sub)
-        await bot.send_message(message.chat.id, text= 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей',reply_markup=markup)
+        await bot.send_message(message.chat.id, 'Нажмите "Подписки" если хотите выбрать или отредактировать категории новостей', reply_markup=markup)
     if message.text == 'Выбрать категории':
-        SQL('DELETE', 'categories', message.chat.id, 'None')
+        SQL('DELETE', 'categories', message.chat.id, None)
         key = random.randrange(1, 1000000)
-        SQL('SELECT', 'random', message.chat.id, 'None')
+        SQL('SELECT', 'random', message.chat.id, None)
+        
         if len(items) != 0:
             SQL('UPDATE', 'random', message.chat.id, key)
         else:
@@ -98,7 +99,7 @@ async def get_text_messages(message):
         await bot.send_message(message.chat.id, 'Выберите категории или нажмите вернитесь в меню подписок для завершения', reply_markup=markup)
     
     if message.text == 'Активные категории':
-        SQL('SELECT', 'categories', message.chat.id, 'None')
+        SQL('SELECT', 'categories', message.chat.id, None)
         if len(items) == 0:
             await bot.send_message(message.chat.id, 'Нет')
         else:
@@ -114,26 +115,26 @@ async def get_text_messages(message):
         await bot.send_message(message.chat.id, 'Выберите пункт',reply_markup=markup)
        
     if message.text == 'Экономика' or message.text == 'Политика' or message.text == 'Спорт' or message.text == 'Общество' or message.text == 'Финансы' or message.text == 'Технологии и медиа':
-        SQL('SELECT', 'categories', message.chat.id, 'None')
-        if (message.text in items):
+        SQL('SELECT', 'categories', message.chat.id, None)
+        if message.text in items:
             await bot.send_message(message.chat.id, 'Уже добавлено!')
         else:
             SQL('INSERT', 'categories', message.chat.id, message.text)
             await bot.send_message(message.chat.id, 'Выберите ещё или начните парсинг')
     if message.text == 'Парсить':
         arr =[]
-        SQL('SELECT', 'categories', message.chat.id, 'None')   
+        SQL('SELECT', 'categories', message.chat.id, None)   
         arr = items
         if len(items) != 0:
             await bot.send_message(message.chat.id, 'Парсим!')
-            SQL('SELECT', 'random', message.chat.id, 'None')
+            SQL('SELECT', 'random', message.chat.id, None)
             for el in items:
                 key = el
             key_parse = key
             check_href = 0
             
             while 0 == 0:
-                SQL('SELECT', 'random', message.chat.id, 'None')
+                SQL('SELECT', 'random', message.chat.id, None)
                 if len(items) != 0:
                     for el in items:
                         key = el
@@ -152,12 +153,12 @@ async def get_text_messages(message):
                     if tema != None:
                         if (tema.text.strip()[:-1] in arr) == True and (href != check_href):
                             
-                            SQL('SELECT', 'checks', message.chat.id, 'None')
+                            SQL('SELECT', 'checks', message.chat.id, None)
                             if len(items) != 0:
                                 SQL('UPDATE', 'checks', message.chat.id, href)
                             else:
                                 SQL('INSERT', 'checks', message.chat.id, href)
-                            SQL('SELECT', 'checks', message.chat.id, 'None')
+                            SQL('SELECT', 'checks', message.chat.id, None)
                             for el in items:
                                 check_href = el
                             markup = types.InlineKeyboardMarkup()
@@ -166,6 +167,6 @@ async def get_text_messages(message):
 
                             await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
                     await asyncio.sleep(60)    
-            else:
-                await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
+        else:
+            await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
 asyncio.run(bot.polling(non_stop=True))
