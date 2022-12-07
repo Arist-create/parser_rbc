@@ -134,39 +134,42 @@ async def get_text_messages(message):
             check_href = 0
             
             while 0 == 0:
-                SQL('SELECT', 'random', message.chat.id, None)
-                if len(items) != 0:
-                    for el in items:
-                        key = el
-                    if key_parse != key:
-                        break
-                    r = requests.get('https://www.rbc.ru/short_news')
-                    soup = BeautifulSoup(r.content, 'html.parser')
-                    try:
-                        img = soup.find('div', class_='item__wrap l-col-center').find('img').get('src')
-                    except:
-                        img = 'https://koronapay.com/transfers/europe/static/rbk_05b1697cef-1e51cefc9b0d1f98b617abdaf35b7417.jpg'
+                try: 
+                    SQL('SELECT', 'random', message.chat.id, None)
+                    if len(items) != 0:
+                        for el in items:
+                            key = el
+                        if key_parse != key:
+                            break
+                        r = requests.get('https://www.rbc.ru/short_news')
+                        soup = BeautifulSoup(r.content, 'html.parser')
+                        try:
+                            img = soup.find('div', class_='item__wrap l-col-center').find('img').get('src')
+                        except:
+                            img = 'https://koronapay.com/transfers/europe/static/rbk_05b1697cef-1e51cefc9b0d1f98b617abdaf35b7417.jpg'
                 
-                    txt = soup.find('div', class_='item__wrap l-col-center').find('span', class_='item__title rm-cm-item-text')
-                    href = soup.find('a', class_='item__link').get('href')
-                    tema = soup.find('div', class_='item__bottom').find('a', class_='item__category')
-                    if tema != None:
-                        if (tema.text.strip()[:-1] in arr) == True and (href != check_href):
+                        txt = soup.find('div', class_='item__wrap l-col-center').find('span', class_='item__title rm-cm-item-text')
+                        href = soup.find('a', class_='item__link').get('href')
+                        tema = soup.find('div', class_='item__bottom').find('a', class_='item__category')
+                        if tema != None:
+                            if (tema.text.strip()[:-1] in arr) == True and (href != check_href):
                             
-                            SQL('SELECT', 'checks', message.chat.id, None)
-                            if len(items) != 0:
-                                SQL('UPDATE', 'checks', message.chat.id, href)
-                            else:
-                                SQL('INSERT', 'checks', message.chat.id, href)
-                            SQL('SELECT', 'checks', message.chat.id, None)
-                            for el in items:
-                                check_href = el
-                            markup = types.InlineKeyboardMarkup()
-                            button = types.InlineKeyboardButton("Перейти к новости", url=href)
-                            markup.add(button)
+                                SQL('SELECT', 'checks', message.chat.id, None)
+                                if len(items) != 0:
+                                    SQL('UPDATE', 'checks', message.chat.id, href)
+                                else:
+                                    SQL('INSERT', 'checks', message.chat.id, href)
+                                SQL('SELECT', 'checks', message.chat.id, None)
+                                for el in items:
+                                    check_href = el
+                                markup = types.InlineKeyboardMarkup()
+                                button = types.InlineKeyboardButton("Перейти к новости", url=href)
+                                markup.add(button)
 
-                            await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
-                    await asyncio.sleep(60)    
+                                await bot.send_photo(message.chat.id, photo = img , caption = f'<b>{txt.text.strip()}</b>' + '\n' + '\n' + f'<em>{tema.text.strip()[:-1]}</em>', reply_markup=markup, parse_mode= "html") 
+                        await asyncio.sleep(60)
+                except:
+                    print('Error')    
         else:
             await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
 while True:
