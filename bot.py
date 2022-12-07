@@ -169,4 +169,8 @@ async def get_text_messages(message):
                     await asyncio.sleep(60)    
         else:
             await bot.send_message(message.chat.id, 'Вы не выбрали категории. Нажмите "Подписки", затем "Выбрать категории"')
-asyncio.run(bot.polling(non_stop=True))
+while True:
+    try:
+        asyncio.run(bot.polling(non_stop=True))
+    except:
+        asyncio.sleep(60) 
